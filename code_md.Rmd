@@ -1,9 +1,18 @@
+---
+title: "Breast Cancer Diagnosis Project"
+author: "Anne (Annie) Lott"
+date: "January 26, 2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE}
 #set working directory externally
 #read in data
 cancer = read.csv("data.csv", header = TRUE, row.names = "id")
-
-#examine data
-View(cancer)
 
 #load libraries
 library(caret)
@@ -309,3 +318,5 @@ mean(knn.final.pred1 == valid.Y)
 #examine the confusion matrix
 table(truth = valid.Y, prediction = knn.final.pred1)
 
+
+```
