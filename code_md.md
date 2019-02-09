@@ -3,13 +3,17 @@ Breast Cancer Diagnosis Project
 Anne (Annie) Lott
 January 26, 2019
 
+Introduction
+============
+
+An accurate diagnosis of breast cancer is critical to the well-being of the patient. The analysis of data from fine needle aspirate (FNA) images of cell nuclei sampled from benign and malignant breast tumors can be applied to develop a statistical learning model to correctly classify tumors as cancerous or benign, using measurements taken from similar FNA images. The data set used in this study is a cleaned version of the Street et al. (1993) data from the University of Wisconsin, which consists of 569 observations of women with breast tumors. The dependent variable is whether the tumor was malignant or benign, and the 30 features of the data are measures of the shape, size, and texture of the tumor cell nuclei derived from the FNA images.
+
+The 569 observations were randomly divided among training, validation, and test sets, and a suite of classification techniques were applied to the data to categorize the tumor image observations as malignant or benign. The methods investigated were the logistic regression model, random forests, support vector machines with linear kernels, and k nearest neighbors.
+
 ``` r
 #set working directory externally
 #read in data
 cancer = read.csv("data.csv", header = TRUE, row.names = "id")
-
-#examine data
-#View(cancer)
 
 #load libraries
 library(caret)
@@ -59,6 +63,28 @@ nrow(cancer[cancer["diagnosis"] == "M",])
 ```
 
     ## [1] 212
+
+Data Set Description
+====================
+
+To build this data set, scientists took FNA images of cell nuclei from breast tumors that had already been classified as malignant or benign. An example of a breast tumor cell nuclei FNA image is shown as follows:
+
+![FNA Image (from Teague et al. 1997](fna_image_2.JPG)
+
+Based on these images, various measurements of shape, size, and texture of the cell nuclei were taken, with each variable in the data set given as an average, standard error, or mean of the three largest values of several measurements of the same type. For example, the mean radius of all the cell nuclei in a tumor sample image is provided for each observation, as well as the standard error of the cell nuclei radii for the observation and the average of the three largest cell nuclei radii, labeled as “worst”.
+
+Other derived measurements of imaged cell nuclei include the texture, calculated as the standard deviation of gray-scale values; smoothness, or the local variation in the lengths of radii; compactness, or perimeter squared divided by area minus 1; and fractal dimension, the “coastline approximation” minus one. The “coastline approximation” is developed through approximating the perimeter of the cell nucleus with increasingly large line segments. The slope of these values on the log scale versus the size of the line segments is used to compute this “coastline approximation”.
+
+As shown above, in this data set there are 357 observations that are classified as benign and 212 observations that are classified as malignant.
+
+Methodology
+===========
+
+Logistic regression, k-nearest neighbors, random forests, and support vector machines with linear kernels (support vector classifiers) were applied to this data in R to determine whether the observations in the validation and test sets were malignant or benign. Only one model, performing the best on the validation set compared to the other three models, was used to predict tumor status on the test set.
+
+To select the variables to be used in each model, the caret package was first employed to rank the variables by importance according to the model formulation. Unfortunately, the variable ranking produced by caret is heavily dependent on the model being applied, and won’t give an overall ranking of variable importance unconnected to the model.
+
+Based on the variable ranking for the model, then, variables were iteratively added to the model in order from most important to least important, and the accuracy of the model was computed on the validation set. The model with a certain number of variables and the highest accuracy was chosen, and the variables in that model were used. This is a variant of forward selection.
 
 ``` r
 ##########################
@@ -176,7 +202,7 @@ ggplot(a.glm)+
   ggtitle("Logistic Regression Model")
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-1.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 ``` r
 which.max(accuracy)
@@ -225,7 +251,7 @@ rocplot(glm.mod.final) +
   ggtitle("Logistic Regression ROC Curve")
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-2.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-2.png)
 
 ``` r
 #look at the model summary
@@ -326,7 +352,7 @@ ggplot(a.glm)+
   ggtitle("SVM Model (Linear)")
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-3.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-3.png)
 
 ``` r
 which.max(accuracy.svm)
@@ -417,7 +443,7 @@ p + geom_point(data = diag, aes(x = x, y = y), color = "red") +
            label = paste("AUC: ", auc.value))
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-4.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-4.png)
 
 ``` r
 ###########################
@@ -447,9 +473,9 @@ knn.obj = rknnBeg(train.X, train.Y, k = 1, r = 500,
 bestset(knn.obj)
 ```
 
-    ## [1] "perimeter_worst"      "radius_worst"         "concavity_worst"     
-    ## [4] "radius_mean"          "area_worst"           "area_se"             
-    ## [7] "perimeter_mean"       "concave_points_worst"
+    ## [1] "area_worst"           "radius_worst"         "perimeter_worst"     
+    ## [4] "radius_mean"          "perimeter_se"         "concavity_worst"     
+    ## [7] "concave_points_worst" "perimeter_mean"
 
 ``` r
 #use the subset of predictors selected in the training, validation
@@ -472,13 +498,13 @@ ggplot(k.choose) +
   ggtitle("Optimal Value of k")
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-5.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-5.png)
 
 ``` r
 which.max(k.accuracy.subset)
 ```
 
-    ## [1] 9
+    ## [1] 3
 
 ``` r
 #use the optimal k from the loop in the final knn model
@@ -489,7 +515,7 @@ knn.final.pred1 = knn(train.X.subset, valid.X.subset, train.Y,
 mean(knn.final.pred1 == valid.Y)
 ```
 
-    ## [1] 0.95
+    ## [1] 0.94
 
 ``` r
 knn.accuracy = mean(knn.final.pred1 == valid.Y)
@@ -500,8 +526,8 @@ table(truth = valid.Y, prediction = knn.final.pred1)
 
     ##      prediction
     ## truth  B  M
-    ##     B 64  1
-    ##     M  4 31
+    ##     B 62  3
+    ##     M  3 32
 
 ``` r
 #try to generate probabilities that ROCR can use
@@ -553,7 +579,7 @@ p.knn + geom_point(data = diag, aes(x = x, y = y), color = "red") +
            label = paste("AUC: ", auc.value.knn))
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-6.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-6.png)
 
 ``` r
 ###########################
@@ -628,13 +654,13 @@ ggplot(a.rf)+
   ggtitle("Random Forest Model")
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-7.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-7.png)
 
 ``` r
 which.max(accuracy.rf)
 ```
 
-    ## [1] 4
+    ## [1] 7
 
 ``` r
 #formula based on the most important 9 variables
@@ -655,7 +681,7 @@ rf.pred.final = predict(final.mod.rf, cancer.valid)
 mean(rf.pred.final == cancer.valid$diagnosis)
 ```
 
-    ## [1] 0.96
+    ## [1] 0.97
 
 ``` r
 rf.accuracy = mean(rf.pred.final == cancer.valid$diagnosis)
@@ -667,8 +693,8 @@ table(truth = cancer.valid$diagnosis, prediction =
 
     ##      prediction
     ## truth  B  M
-    ##     B 62  3
-    ##     M  1 34
+    ##     B 64  1
+    ##     M  2 33
 
 ``` r
 rf.pred.roc = predict(final.mod.rf, newdata = cancer.valid,
@@ -705,170 +731,23 @@ p.rf + geom_point(data = diag, aes(x = x, y = y), color = "red") +
            label = paste("AUC: ", auc.value.rf))
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-8.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-8.png)
 
 ``` r
-#############################
-#############################
-###                       ###
-### SVMs w/Radial Kernels ###
-###                       ###
-#############################
-#############################
+##################################
+##################################
+###                            ###
+### Comparing Model Accuracies ### 
+###                            ###
+##################################
+##################################
 
-#put variables in order of importance
-#while testing out SVM with linear kernels
-svm.mod.r = train(diagnosis ~ ., data = cancer.train,
-                method = "svmRadial")
-
-svm.var.import.r = varImp(svm.mod.r)$importance %>% 
-  as.data.frame() %>%
-  mutate(rowname = rownames(.)) %>%
-  arrange(desc(B), desc(M))
-
-svm.vars.r = svm.var.import.r$rowname
-
-#implement SVMs with linear kernels with different
-#tuning parameter values
-#use all the variables at first
-tune.out1.r = tune(svm, diagnosis ~ .,
-                 data = cancer.train, kernel = "radial",
-                 ranges = list(cost = c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
-
-#allow the cross-validation algorithm to select the best model
-best.svm1.r = tune.out1$best.model
-#the best cost tuning parameter is 1
-
-#add each variable in the list of ranked variables
-#iteratively to the model and compute the accuracy
-#performs a variant of forward selection
-varnum.svm.r = 1:length(svm.vars.r)
-accuracy.svm.r = rep(NA, length(svm.vars.r))
-for (ii in 1:length(svm.vars.r)){
-  #generate a formula including ii variables
-  Formula.svm.r <- formula(paste("diagnosis ~ ", 
-                               paste(svm.vars.r[1:ii], collapse=" + ")))
-  
-  #create the model
-  partial.mod.svm.r = svm(Formula.svm.r, data = cancer.train, kernel = "radial",
-                        cost = 1)
-  
-  #predict malignancy
-  cancer.pred.svm.r = predict(partial.mod.svm.r, cancer.valid, 
-                            decision.values = TRUE)
-  
-  #store the accuracy of the model
-  accuracy.svm.r[ii] = mean(cancer.pred.svm.r == cancer.valid$diagnosis)
-}
-
-#Plot the accuracy versus number of variables
-a.svm.r = data.frame(varnum.svm.r, accuracy.svm.r)
-ggplot(a.svm.r)+
-  geom_point(aes(x = varnum.svm.r, y = accuracy.svm.r))+
-  labs(x = "Number of Variables", y = "Accuracy") +
-  ggtitle("SVM Model (Radial)")
-```
-
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-9.png)
-
-``` r
-which.max(accuracy.svm.r)
-```
-
-    ## [1] 6
-
-``` r
-#formula based on the most important variables,
-#the number of variables to include determined above
-Formula.svm.final.r <- formula(paste("diagnosis ~ ", 
-                                   paste(svm.vars.r[1:which.max(accuracy.svm.r)], 
-                                         collapse=" + ")))
-
-#create the model
-svm.mod.final.r = svm(Formula.svm.final.r, data = cancer.train,
-                    kernel = "radial",
-                    cost = 1)
-
-#predict malignancy
-svm.pred.final.r = predict(svm.mod.final.r, cancer.valid,
-                         decision.values = TRUE)
-
-#find the accuracy of the SVM model
-mean(svm.pred.final.r == cancer.valid$diagnosis)
-```
-
-    ## [1] 0.99
-
-``` r
-svm.accuracy.r = mean(svm.pred.final.r == cancer.valid$diagnosis)
-
-#examine the confusion matrix
-table(truth = cancer.valid$diagnosis, prediction =
-        svm.pred.final.r)
-```
-
-    ##      prediction
-    ## truth  B  M
-    ##     B 65  0
-    ##     M  1 34
-
-``` r
-#write a function to extract performance measures from
-#fitted decision values of the SVM and the actual 
-#values of the diagnosis
-roc.svm = function(pred, truth, ...){
-  predob = prediction(pred, truth)
-  perf = performance(predob, "tpr", "fpr")
-  perf
-  
-}
-
-#get the decison values from the SVM prediction
-fitted.r = attributes(svm.pred.final.r)$decision.values
-
-#find the false positive and true positive rates from the
-#(hella weird) performance object
-fpr.r = roc.svm(fitted.r, cancer.valid$diagnosis)@x.values
-tpr.r = roc.svm(fitted.r, cancer.valid$diagnosis)@y.values
-
-#put fpr and tpr, which are lists, into a data frame
-roc.dat.r = data.frame(false_pos_rate = as.vector(fpr.r[[1]]), 
-                     true_pos_rate = as.vector(tpr.r[[1]]))
-
-#create a prediction object from the fitted values and the 
-#actual values of the diagnosis
-predobj.r = prediction(fitted.r, cancer.valid$diagnosis)
-
-#find the area under curve for this prediction object
-auc.obj.r = performance(predobj.r, measure = "auc")
-
-#access and round the AUC value
-auc.value.r = round(auc.obj.r@y.values[[1]],3)
-
-#create a diagonal line data frame for reference
-diag = data.frame(x = seq(0,1,by= 0.001), y = seq(0,1, by= 0.001))
-
-#plot the ROC curve in ggplot2
-p.r = ggplot(roc.dat.r, aes(x = false_pos_rate, y = true_pos_rate)) +
-  geom_point(color = "green") + geom_line(color = "green") +
-  geom_line(data = diag, aes(x = x,y = y), color = "red")
-p.r + geom_point(data = diag, aes(x = x, y = y), color = "red") +
-  theme(axis.text = element_text(size = 10),
-        title = element_text(size = 12)) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "ROC curve") +
-  annotate("text", x = 0.85, y = 0.1, 
-           label = paste("AUC: ", auc.value.r))
-```
-
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-10.png)
-
-``` r
 #create a data frame of the models and their accuracies
 model.accuracy = data.frame(model = c("logistic", "SVM (Linear)", "kNN",
-                                      "random forest", "SVM (Radial)"),
+                                      "random forest"),
                             accuracy.of.model = 
                               c(glm.accuracy, svm.accuracy,
-                                knn.accuracy, rf.accuracy, svm.accuracy.r))
+                                knn.accuracy, rf.accuracy))
 
 #plot the model accuracies
 ggplot(model.accuracy) + 
@@ -879,4 +758,122 @@ ggplot(model.accuracy) +
   ggtitle("Accuracy of Models")
 ```
 
-![](code_md_files/figure-markdown_github/unnamed-chunk-1-11.png)
+![](code_md_files/figure-markdown_github/unnamed-chunk-2-9.png)
+
+The support vector machine (SVM) with a linear kernel was the most accurate on the validation set, so this model was applied to the test set to determine its predictive accuracy. The ROC plot and confusion matrix results from administering the SVM model to the test set are shown below:
+
+``` r
+###############################
+############################### 
+###                         ###
+###  Using SVM on Test Set  ###
+###                         ###
+###############################
+###############################
+
+#predict malignancy
+svm.pred.test = predict(svm.mod.final, cancer.test,
+                        decision.values = TRUE)
+
+#determine the accuracy rate
+mean(svm.pred.test == cancer.test$diagnosis)
+```
+
+    ## [1] 0.9585799
+
+``` r
+#create the confusion matrix
+confusionMatrix(as.factor(svm.pred.test), as.factor(cancer.test$diagnosis))
+```
+
+    ## Confusion Matrix and Statistics
+    ## 
+    ##           Reference
+    ## Prediction   B   M
+    ##          B 100   4
+    ##          M   3  62
+    ##                                           
+    ##                Accuracy : 0.9586          
+    ##                  95% CI : (0.9165, 0.9832)
+    ##     No Information Rate : 0.6095          
+    ##     P-Value [Acc > NIR] : <2e-16          
+    ##                                           
+    ##                   Kappa : 0.9128          
+    ##  Mcnemar's Test P-Value : 1               
+    ##                                           
+    ##             Sensitivity : 0.9709          
+    ##             Specificity : 0.9394          
+    ##          Pos Pred Value : 0.9615          
+    ##          Neg Pred Value : 0.9538          
+    ##              Prevalence : 0.6095          
+    ##          Detection Rate : 0.5917          
+    ##    Detection Prevalence : 0.6154          
+    ##       Balanced Accuracy : 0.9551          
+    ##                                           
+    ##        'Positive' Class : B               
+    ## 
+
+``` r
+table(prediction = svm.pred.test, truth = cancer.test$diagnosis)
+```
+
+    ##           truth
+    ## prediction   B   M
+    ##          B 100   4
+    ##          M   3  62
+
+``` r
+#create the ROC plot for the test data
+#with SVM with linear kernel
+
+#get the decison values from the SVM prediction
+fitted.test = attributes(svm.pred.test)$decision.values
+
+#find the false positive and true positive rates from the
+#(hella weird) performance object
+fpr.test = roc.svm(fitted.test, cancer.test$diagnosis)@x.values
+tpr.test = roc.svm(fitted.test, cancer.test$diagnosis)@y.values
+
+#put fpr and tpr, which are lists, into a data frame
+roc.dat.test = data.frame(false_pos_rate = as.vector(fpr.test[[1]]), 
+                     true_pos_rate = as.vector(tpr.test[[1]]))
+
+#create a prediction object from the fitted values and the 
+#actual values of the diagnosis
+predobj.test = prediction(fitted.test, cancer.test$diagnosis)
+
+#find the area under curve for this prediction object
+auc.obj.test = performance(predobj.test, measure = "auc")
+
+#access and round the AUC value
+auc.value.test = round(auc.obj.test@y.values[[1]],3)
+
+#create a diagonal line data frame for reference
+diag = data.frame(x = seq(0,1,by= 0.001), y = seq(0,1, by= 0.001))
+
+#plot the ROC curve in ggplot2
+p = ggplot(roc.dat.test, aes(x = false_pos_rate, y = true_pos_rate)) +
+  geom_point(color = "blue") + geom_line(color = "blue") +
+  geom_line(data = diag, aes(x = x,y = y), color = "red")
+p + geom_point(data = diag, aes(x = x, y = y), color = "red") +
+  theme(axis.text = element_text(size = 10),
+        title = element_text(size = 12)) + 
+  labs(x = "1 - Specificity", y = "Sensitivity", 
+       title = "Test Set ROC Curve for SVM") +
+  annotate("text", x = 0.85, y = 0.1, 
+           label = paste("AUC: ", auc.value.test))
+```
+
+![](code_md_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
+Conclusion
+==========
+
+The best model, an SVM with linear kernels, was only about 95.9% accurate on the test set, with a false positive rate of about 3% and a false negative rate of approximately 6%, with “malignant” considered as a positive. Therefore, more research needs to be done to improve this accuracy, using better model selection and variable selection techniques.
+
+References
+==========
+
+W.N. Street, W.H. Wolberg and O.L. Mangasarian (1993). "Nuclear feature extraction for breast tumor diagnosis." *IS&T/SPIE 1993 International Symposium on Electronic Imaging: Science and Technology*, (1905), 861-870.
+
+M.W. Teague, et al. (1997). “Indeterminate Fine-Needle Aspiration of the Breast: Image Analysis-Assisted Diagnosis.” *Cancer Cytopathology*, 129-135.
