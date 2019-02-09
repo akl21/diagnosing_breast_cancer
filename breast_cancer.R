@@ -33,6 +33,28 @@ nrow(cancer)
 nrow(cancer[cancer["diagnosis"] == "B",])
 nrow(cancer[cancer["diagnosis"] == "M",])
 
+#Exploratory Data Analysis
+ggplot(cancer) + 
+  geom_boxplot(aes(x = as.factor(diagnosis), y = perimeter_worst), 
+               fill = "blue") +
+  labs(x = "Diagnosis", y = "Worst Perimeter") +
+  ggtitle("Worst Perimeter Boxplots")
+ggplot(cancer) + 
+  geom_boxplot(aes(x = as.factor(diagnosis), y = area_worst), 
+               fill = "purple") +
+  labs(x = "Diagnosis", y = "Worst Area") +
+  ggtitle("Worst Area Boxplots")
+ggplot(cancer) + 
+  geom_boxplot(aes(x = as.factor(diagnosis), y = radius_worst), 
+               fill = "green") +
+  labs(x = "Diagnosis", y = "Worst Radius") +
+  ggtitle("Worst Radius Boxplots")
+ggplot(cancer) + 
+  geom_boxplot(aes(x = as.factor(diagnosis), y = concave_points_mean), 
+               fill = "pink") +
+  labs(x = "Diagnosis", y = "Mean of Concave Points") +
+  ggtitle("Mean of Concave Points Boxplots")
+
 ##########################
 ##########################
 ###                    ###
@@ -118,7 +140,7 @@ for (ii in 1:length(vars)){
 a.glm = data.frame(varnum, accuracy)
 ggplot(a.glm)+
   geom_point(aes(x = varnum, y = accuracy))+
-  labs(x = "Number of Variables", y = "Accuracy") +
+  labs(x = "Number of Variables", y = "Accuracy on Validation Set") +
   ggtitle("Logistic Regression Model")
 which.max(accuracy)
 
@@ -210,8 +232,8 @@ for (ii in 1:length(svm.vars)){
 a.svm = data.frame(varnum.svm, accuracy.svm)
 ggplot(a.glm)+
   geom_point(aes(x = varnum.svm, y = accuracy.svm))+
-  labs(x = "Number of Variables", y = "Accuracy") +
-  ggtitle("SVM Model (Linear)")
+  labs(x = "Number of Variables", y = "Accuracy on Validation Set") +
+  ggtitle("SVM Model")
 which.max(accuracy.svm)
 
 #formula based on the most important variables,
@@ -274,12 +296,12 @@ diag = data.frame(x = seq(0,1,by= 0.001), y = seq(0,1, by= 0.001))
 
 #plot the ROC curve in ggplot2
 p = ggplot(roc.dat, aes(x = false_pos_rate, y = true_pos_rate)) +
-      geom_point(color = "green") + geom_line(color = "green") +
+      geom_point(color = "blue") + geom_line(color = "blue") +
       geom_line(data = diag, aes(x = x,y = y), color = "red")
 p + geom_point(data = diag, aes(x = x, y = y), color = "red") +
   theme(axis.text = element_text(size = 10),
         title = element_text(size = 12)) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "ROC curve") +
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "SVM ROC Curve") +
   annotate("text", x = 0.85, y = 0.1, 
            label = paste("AUC: ", auc.value))
   
@@ -385,7 +407,7 @@ p.knn = ggplot(roc.dat.knn, aes(x = false_pos_rate, y = true_pos_rate)) +
 p.knn + geom_point(data = diag, aes(x = x, y = y), color = "red") +
   theme(axis.text = element_text(size = 10),
         title = element_text(size = 12)) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "ROC curve") +
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "kNN ROC Curve") +
   annotate("text", x = 0.85, y = 0.1, 
            label = paste("AUC: ", auc.value.knn))
 
@@ -445,7 +467,7 @@ for (ii in 1:length(rf.vars)){
 a.rf = data.frame(varnum.rf, accuracy.rf)
 ggplot(a.rf)+
   geom_point(aes(x = varnum.rf, y = accuracy.rf))+
-  labs(x = "Number of Variables", y = "Accuracy") +
+  labs(x = "Number of Variables", y = "Accuracy on Validation Set") +
   ggtitle("Random Forest Model")
 which.max(accuracy.rf)
 
@@ -495,12 +517,12 @@ auc.value.rf = round(auc.obj.rf@y.values[[1]],3)
 #plot the ROC curve in ggplot2
 #use diag from the SVM section for the reference line
 p.rf = ggplot(roc.dat.rf, aes(x = false_pos_rate, y = true_pos_rate)) +
-  geom_point(color = "purple") + geom_line(color = "purple") +
+  geom_point(color = "forestgreen") + geom_line(color = "forestgreen") +
   geom_line(data = diag, aes(x = x,y = y), color = "red")
 p.rf + geom_point(data = diag, aes(x = x, y = y), color = "red") +
   theme(axis.text = element_text(size = 10),
         title = element_text(size = 12)) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "ROC curve") +
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "Random Forest ROC Curve") +
   annotate("text", x = 0.85, y = 0.1, 
            label = paste("AUC: ", auc.value.rf))
 
@@ -635,11 +657,11 @@ p.r + geom_point(data = diag, aes(x = x, y = y), color = "red") +
            label = paste("AUC: ", auc.value.r))
 
 #create a data frame of the models and their accuracies
-model.accuracy = data.frame(model = c("logistic", "SVM (Linear)", "kNN",
-                                      "random forest", "SVM (Radial)"),
+model.accuracy = data.frame(model = c("logistic", "SVM", "kNN",
+                                      "random forest"),
                             accuracy.of.model = 
                               c(glm.accuracy, svm.accuracy,
-                                knn.accuracy, rf.accuracy, svm.accuracy.r))
+                                knn.accuracy, rf.accuracy))
 
 #plot the model accuracies
 ggplot(model.accuracy) + 
@@ -647,5 +669,65 @@ ggplot(model.accuracy) +
            fill = "blue") +
   labs(x = "Model", y = "Accuracy")+
   coord_cartesian(ylim=c(0.9, 1)) +
-  ggtitle("Accuracy of Models")
+  ggtitle("Accuracy of Models on Validation Set")
 
+#find the accuracy of the SVM with a linear kernel
+#and an SVM with a radial kernel on the test set
+
+#predict malignancy
+svm.pred.test = predict(svm.mod.final, cancer.test,
+                        decision.values = TRUE)
+
+#determine the accuracy rate
+mean(svm.pred.test == cancer.test$diagnosis)
+
+#create the confusion matrix
+confusionMatrix(as.factor(svm.pred.test), as.factor(cancer.test$diagnosis))
+table(prediction = svm.pred.test, truth = cancer.test$diagnosis)
+
+#predict malignancy (radial kernels)
+svm.pred.test.r = predict(svm.mod.final.r, cancer.test,
+                          decision.values = TRUE)
+
+#determine the radial kernel accuracy rate
+mean(svm.pred.test.r == cancer.test$diagnosis)
+
+#create the ROC plot for the test data
+#with SVM with linear kernel
+
+#get the decison values from the SVM prediction
+fitted.test = attributes(svm.pred.test)$decision.values
+
+#find the false positive and true positive rates from the
+#(hella weird) performance object
+fpr.test = roc.svm(fitted.test, cancer.test$diagnosis)@x.values
+tpr.test = roc.svm(fitted.test, cancer.test$diagnosis)@y.values
+
+#put fpr and tpr, which are lists, into a data frame
+roc.dat.test = data.frame(false_pos_rate = as.vector(fpr.test[[1]]), 
+                     true_pos_rate = as.vector(tpr.test[[1]]))
+
+#create a prediction object from the fitted values and the 
+#actual values of the diagnosis
+predobj.test = prediction(fitted.test, cancer.test$diagnosis)
+
+#find the area under curve for this prediction object
+auc.obj.test = performance(predobj.test, measure = "auc")
+
+#access and round the AUC value
+auc.value.test = round(auc.obj.test@y.values[[1]],3)
+
+#create a diagonal line data frame for reference
+diag = data.frame(x = seq(0,1,by= 0.001), y = seq(0,1, by= 0.001))
+
+#plot the ROC curve in ggplot2
+p = ggplot(roc.dat.test, aes(x = false_pos_rate, y = true_pos_rate)) +
+  geom_point(color = "blue") + geom_line(color = "blue") +
+  geom_line(data = diag, aes(x = x,y = y), color = "red")
+p + geom_point(data = diag, aes(x = x, y = y), color = "red") +
+  theme(axis.text = element_text(size = 10),
+        title = element_text(size = 12)) + 
+  labs(x = "1 - Specificity", y = "Sensitivity", 
+       title = "Test Set ROC Curve for SVM") +
+  annotate("text", x = 0.85, y = 0.1, 
+           label = paste("AUC: ", auc.value.test))
