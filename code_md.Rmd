@@ -55,7 +55,7 @@ nrow(cancer[cancer["diagnosis"] == "M",])
 
 To build this data set, scientists took FNA images of cell nuclei from breast tumors that had already been classified as malignant or benign. An example of a breast tumor cell nuclei FNA image is shown as follows:
 
- ![FNA Image (from Teague et al. 1997](fna_image_2.JPG)
+ ![FNA Image (from Teague et al. 1997)](fna_image_2.JPG)
 
 Based on these images, various measurements of shape, size, and texture of the cell nuclei were taken, with each variable in the data set given as an average, standard error, or mean of the three largest values of several measurements of the same type. For example, the mean radius of all the cell nuclei in a tumor sample image is provided for each observation, as well as the standard error of the cell nuclei radii for the observation and the average of the three largest cell nuclei radii, labeled as “worst”. 
 

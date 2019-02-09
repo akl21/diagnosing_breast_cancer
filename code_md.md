@@ -69,7 +69,7 @@ Data Set Description
 
 To build this data set, scientists took FNA images of cell nuclei from breast tumors that had already been classified as malignant or benign. An example of a breast tumor cell nuclei FNA image is shown as follows:
 
-![FNA Image (from Teague et al. 1997](fna_image_2.JPG)
+![FNA Image (from Teague et al. 1997)](fna_image_2.JPG)
 
 Based on these images, various measurements of shape, size, and texture of the cell nuclei were taken, with each variable in the data set given as an average, standard error, or mean of the three largest values of several measurements of the same type. For example, the mean radius of all the cell nuclei in a tumor sample image is provided for each observation, as well as the standard error of the cell nuclei radii for the observation and the average of the three largest cell nuclei radii, labeled as “worst”.
 
@@ -473,9 +473,9 @@ knn.obj = rknnBeg(train.X, train.Y, k = 1, r = 500,
 bestset(knn.obj)
 ```
 
-    ## [1] "area_worst"           "radius_worst"         "perimeter_worst"     
-    ## [4] "radius_mean"          "perimeter_se"         "concavity_worst"     
-    ## [7] "concave_points_worst" "perimeter_mean"
+    ## [1] "radius_worst"         "radius_mean"          "perimeter_worst"     
+    ## [4] "concave_points_worst" "area_worst"           "compactness_worst"   
+    ## [7] "concave_points_mean"  "concavity_worst"
 
 ``` r
 #use the subset of predictors selected in the training, validation
@@ -504,7 +504,7 @@ ggplot(k.choose) +
 which.max(k.accuracy.subset)
 ```
 
-    ## [1] 3
+    ## [1] 10
 
 ``` r
 #use the optimal k from the loop in the final knn model
@@ -515,7 +515,7 @@ knn.final.pred1 = knn(train.X.subset, valid.X.subset, train.Y,
 mean(knn.final.pred1 == valid.Y)
 ```
 
-    ## [1] 0.94
+    ## [1] 0.95
 
 ``` r
 knn.accuracy = mean(knn.final.pred1 == valid.Y)
@@ -526,8 +526,8 @@ table(truth = valid.Y, prediction = knn.final.pred1)
 
     ##      prediction
     ## truth  B  M
-    ##     B 62  3
-    ##     M  3 32
+    ##     B 64  1
+    ##     M  4 31
 
 ``` r
 #try to generate probabilities that ROCR can use
@@ -660,7 +660,7 @@ ggplot(a.rf)+
 which.max(accuracy.rf)
 ```
 
-    ## [1] 7
+    ## [1] 26
 
 ``` r
 #formula based on the most important 9 variables
@@ -693,8 +693,8 @@ table(truth = cancer.valid$diagnosis, prediction =
 
     ##      prediction
     ## truth  B  M
-    ##     B 64  1
-    ##     M  2 33
+    ##     B 63  2
+    ##     M  1 34
 
 ``` r
 rf.pred.roc = predict(final.mod.rf, newdata = cancer.valid,
