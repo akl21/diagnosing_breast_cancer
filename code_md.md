@@ -1,7 +1,7 @@
 Breast Cancer Diagnosis Project
 ================
 Anne (Annie) Lott
-January 26, 2019
+
 
 Introduction
 ============
